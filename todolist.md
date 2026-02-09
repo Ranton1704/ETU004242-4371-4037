@@ -15,7 +15,7 @@ equipes:
       - Tester les requetes principales
     livrables:
       - base.sql
-      - seed.sql
+      
 
   - responsable: Authentification
     description: Gestion des comptes utilisateurs
