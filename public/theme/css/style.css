@@ -1,0 +1,6 @@
+/* Electro style.css (partial) copied for Takalo-Takalo theme integration */
+/* Full original large file is available in ../Electro-Bootstrap-1.0.0/css/style.css */
+
+/* Minimal safe overrides */
+#spinner{opacity:0;visibility:hidden}
+.back-to-top{position:fixed;right:30px;bottom:30px}

@@ -7,12 +7,14 @@ class FrontController {
 
     // Page d'accueil
     public static function welcome() {
-        Flight::render('welcome', []);
+        Flight::render('welcome', [], 'content');
+        Flight::render('layouts/main');
     }
 
     // Formulaire login
     public static function loginForm() {
-        Flight::render('login', []);
+        Flight::render('login', [], 'content');
+        Flight::render('layouts/main');
     }
 
     // Action login
@@ -26,19 +28,21 @@ class FrontController {
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($user && $user['mot_de_passe'] === $password) {
-            session_start();
+        if ($user && password_verify($password, $user['mot_de_passe'])) {
+            // session already started in bootstrap
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['role'] = $user['role'];
             Flight::redirect('/objets');
         } else {
-            Flight::render('login', ['error' => 'Email ou mot de passe incorrect']);
+            Flight::render('login', ['error' => 'Email ou mot de passe incorrect'], 'content');
+            Flight::render('layouts/main');
         }
     }
 
     // Formulaire inscription
     public static function registerForm() {
-        Flight::render('register', []);
+        Flight::render('register', [], 'content');
+        Flight::render('layouts/main');
     }
 
     // Action inscription
@@ -47,11 +51,12 @@ class FrontController {
         $db = Flight::db();
 
         // Insérer l'utilisateur
+        $hashed = password_hash($data['mot_de_passe'], PASSWORD_DEFAULT);
         $stmt = $db->prepare("INSERT INTO utilisateurs (nom_utilisateur, email, mot_de_passe) VALUES (?, ?, ?)");
         $stmt->execute([
             $data['nom_utilisateur'],
             $data['email'],
-            $data['mot_de_passe']
+            $hashed
         ]);
 
         Flight::redirect('/login');
@@ -60,26 +65,29 @@ class FrontController {
     // Liste de tous les objets
     public static function listeObjets() {
         $db = Flight::db();
-        $stmt = $db->query("
-            SELECT o.id, o.nom, o.description, o.prix_estime, c.nom AS categorie, 
+        $stmt = $db->prepare(
+            "SELECT o.id, o.nom, o.description, o.prix_estime, o.proprietaire_id, c.nom AS categorie, u.nom_utilisateur, 
                    (SELECT chemin_photo FROM photos_objets WHERE objet_id = o.id LIMIT 1) AS photo
             FROM objets o
             LEFT JOIN categories c ON o.categorie_id = c.id
-        ");
+            LEFT JOIN utilisateurs u ON o.proprietaire_id = u.id"
+        );
+        $stmt->execute();
         $objets = $stmt->fetchAll();
-        Flight::render('objets', ['objets' => $objets]);
+        Flight::render('objets', ['objets' => $objets], 'content');
+        Flight::render('layouts/main');
     }
 
     // Fiche objet
     public static function ficheObjet($id) {
         $db = Flight::db();
-        $stmt = $db->prepare("
-            SELECT o.id, o.nom, o.description, o.prix_estime, c.nom AS categorie, u.nom_utilisateur
+        $stmt = $db->prepare(
+            "SELECT o.id, o.nom, o.description, o.prix_estime, c.nom AS categorie, u.nom_utilisateur, o.proprietaire_id
             FROM objets o
             LEFT JOIN categories c ON o.categorie_id = c.id
             LEFT JOIN utilisateurs u ON o.proprietaire_id = u.id
-            WHERE o.id = ?
-        ");
+            WHERE o.id = ?"
+        );
         $stmt->execute([$id]);
         $objet = $stmt->fetch();
 
@@ -88,7 +96,8 @@ class FrontController {
         $stmt->execute([$id]);
         $photos = $stmt->fetchAll();
 
-        Flight::render('fiche_objet', ['objet' => $objet, 'photos' => $photos]);
+        Flight::render('fiche_objet', ['objet' => $objet, 'photos' => $photos], 'content');
+        Flight::render('layouts/main');
     }
 
     // Historique d’un objet
@@ -103,13 +112,14 @@ class FrontController {
         ");
         $stmt->execute([$objet_id]);
         $historique = $stmt->fetchAll();
-        Flight::render('historique_objet', ['historique' => $historique]);
+        Flight::render('historique_objet', ['historique' => $historique], 'content');
+        Flight::render('layouts/main');
     }
 
     // Liste des échanges pour l'utilisateur connecté
     public static function listeEchanges() {
-        session_start();
-        $user_id = $_SESSION['user_id'];
+        // session started globally in bootstrap
+        $user_id = $_SESSION['user_id'] ?? null;
         $db = Flight::db();
 
         $stmt = $db->prepare("
@@ -124,13 +134,13 @@ class FrontController {
         $stmt->execute([$user_id, $user_id]);
         $echanges = $stmt->fetchAll();
 
-        Flight::render('echanges', ['echanges' => $echanges]);
+        Flight::render('echanges', ['echanges' => $echanges], 'content');
+        Flight::render('layouts/main');
     }
 
     // Proposer un échange
     public static function proposerEchange() {
-        session_start();
-        $user_id = $_SESSION['user_id'];
+        $user_id = $_SESSION['user_id'] ?? null;
         $data = Flight::request()->data;
 
         $db = Flight::db();
@@ -177,6 +187,15 @@ class FrontController {
         }
 
         Flight::redirect('/echanges');
+    }
+
+    // Logout
+    public static function logout() {
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_unset();
+            session_destroy();
+        }
+        Flight::redirect('/');
     }
 
 }

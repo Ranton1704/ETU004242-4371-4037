@@ -1,7 +1,7 @@
 projet: Takalo-Takalo
 framework: FlightPHP MVC
-objectif: Division des taches pour travail en parallele
-langue: Francais
+
+https://www.creative-tim.com/bootstrap-themes/free
 
 equipes:
 

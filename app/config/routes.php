@@ -19,6 +19,7 @@ $router->group('', function(Router $router) use ($app) {
     $router->get('/register', [FrontController::class, 'registerForm']);   
     $router->post('/register', [FrontController::class, 'register']);      
     $router->get('/objets', [FrontController::class, 'listeObjets']);      
+    $router->get('/logout', [FrontController::class, 'logout']);
     $router->get('/objets/@id:[0-9]+', [FrontController::class, 'ficheObjet']);
     $router->get('/historique/@objet_id:[0-9]+', [FrontController::class, 'historiqueObjet']); 
 

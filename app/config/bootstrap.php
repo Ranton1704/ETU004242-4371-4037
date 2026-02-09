@@ -16,6 +16,11 @@ if(file_exists(__DIR__. $ds . 'config.php') === false) {
 // This is important as it connects any static calls to the same $app object
 $app = Flight::app();
 
+// Start PHP session for authentication and flashes
+if (session_status() === PHP_SESSION_NONE) {
+	session_start();
+}
+
 /*
  * Load the config file
  * P.S. When you require a php file and that file returns an array, the array
@@ -39,6 +44,13 @@ $config = require('config.php');
  * of a services container by registering classes to the Engine class.
  */ 
 require('services.php');
+
+// Helper to render a view into the layout. Renders the view into the
+// `$content` variable and then renders the main layout.
+function renderTemplate(string $file, array $data = []) {
+	Flight::render($file, $data, 'content');
+	Flight::render('layouts/main');
+}
 
 // Whip out the ol' router and we'll pass that to the routes file
 $router = $app->router();

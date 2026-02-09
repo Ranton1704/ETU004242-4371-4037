@@ -79,20 +79,64 @@ if (Debugger::$showBar === true && php_sapi_name() !== 'cli') {
  **********************************************/
 // Uncomment and configure the following for your database:
 
-// MySQL Example:
-$dsn = 'mysql:host=' . $config['database']['host'] . ';dbname=' . $config['database']['dbname'] . ';charset=utf8mb4';
+// Determine DSN from configuration (supports mysql and sqlite)
+$ds = $ds ?? DIRECTORY_SEPARATOR;
+if (!empty($config['database']['driver']) && $config['database']['driver'] === 'sqlite') {
+	// SQLite: require a file path in config or fallback to data/database.sqlite
+	$sqlitePath = $config['database']['file_path'] ?? (__DIR__ . $ds . '..' . $ds . 'data' . $ds . 'database.sqlite');
+	$dsn = 'sqlite:' . $sqlitePath;
+} elseif (!empty($config['database']['host']) && !empty($config['database']['dbname'])) {
+	// MySQL
+	$dsn = 'mysql:host=' . $config['database']['host'] . ';dbname=' . $config['database']['dbname'] . ';charset=utf8mb4';
+} else {
+	// Default fallback to a local sqlite file to avoid undefined index errors
+	$fallback = __DIR__ . $ds . '..' . $ds . 'data' . $ds . 'database.sqlite';
+	$dsn = 'sqlite:' . $fallback;
+}
 
-// SQLite Example:
-// $dsn = 'sqlite:' . $config['database']['file_path'];
+// Choose PDO service implementation
+$pdoClass = (Debugger::$showBar === true) ? PdoQueryCapture::class : PdoWrapper::class;
 
 // Register Flight::db() service
-// In development, use PdoQueryCapture to log queries; in production, use PdoWrapper for performance.
-// $pdoClass = Debugger::$showBar === true ? PdoQueryCapture::class : PdoWrapper::class;
- $app->register('db', $pdoClass, [ $dsn, $config['database']['user'] ?? null, $config['database']['password'] ?? null ]);
+$app->register('db', $pdoClass, [ $dsn, $config['database']['user'] ?? null, $config['database']['password'] ?? null ]);
 
 /**********************************************
  *         Third-Party Integrations           *
  **********************************************/
+
+// Start session for user authentication
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Configure view rendering with layout
+$app->map('render', function(string $template, array $data = []) use ($app) {
+    // Extract data to variables
+    extract($data);
+    
+    // Start output buffering to capture content
+    ob_start();
+    
+    // Include the template
+    $viewPath = $app->get('flight.views.path') . '/' . $template . $app->get('flight.views.extension');
+    if (file_exists($viewPath)) {
+        include $viewPath;
+    } else {
+        echo "Template not found: $template";
+    }
+    
+    // Get the content
+    $content = ob_get_clean();
+    
+    // Include the layout with the content
+    $layoutPath = $app->get('flight.views.path') . '/layouts/main.php';
+    if (file_exists($layoutPath)) {
+        include $layoutPath;
+    } else {
+        echo $content;
+    }
+});
+
 // Google OAuth Example:
 // $app->register('google_oauth', Google_Client::class, [ $config['google_oauth'] ]);
 
