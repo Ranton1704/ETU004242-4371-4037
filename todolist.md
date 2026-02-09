@@ -1,122 +1,128 @@
 projet: Takalo-Takalo
 framework: FlightPHP MVC
+objectif: Division des taches pour travail en parallele
+langue: Francais
 
+equipes:
 
-etapes:
-
-  - etape: 1
-    titre: Mise en place technique
-    description: >
-      Préparer l'environnement de travail, la base de données
-      et vérifier que le projet FlightPHP fonctionne correctement.
+  - responsable: Base_de_donnees
+    description: Gestion complete de la base de donnees
     taches:
       - Creer la base de donnees Takalo
-      - Creer les tables SQL (utilisateurs, categories, objets, photos, echanges, historique)
-      - Inserer des donnees de test (admin, utilisateurs, objets, echanges)
-      - Configurer la connexion a la base de donnees dans config.php
+      - Creer les tables SQL (utilisateurs, categories, objets, photos_objets, echanges, historique_objets)
+      - Verifier les cles etrangeres
+      - Inserer les donnees de test
+      - Tester les requetes principales
+    livrables:
+      - base.sql
+      - seed.sql
 
-  - etape: 2
-    titre: Authentification des utilisateurs
-    description: >
-      Permettre aux utilisateurs de creer un compte et de se connecter.
+  - responsable: Authentification
+    description: Gestion des comptes utilisateurs
     taches:
-      - Creer la page inscription utilisateur
-      - Creer la page connexion utilisateur
-      - Hasher les mots de passe avec password_hash
-      - Verifier les identifiants avec password_verify
-      - Gerer les sessions (login / logout)
-      - Proteger les pages reservees aux utilisateurs connectes
+      - Creer la page inscription
+      - Creer la page connexion
+      - Hasher les mots de passe
+      - Verifier les mots de passe
+      - Mettre en place les sessions
+      - Creer la deconnexion
+      - Proteger les pages reservees
+    livrables:
+      - AuthController.php
+      - vues_login_register
 
-  - etape: 3
-    titre: Gestion des objets par l'utilisateur
-    description: >
-      Chaque utilisateur peut gerer ses propres objets a echanger.
+  - responsable: Gestion_objets
+    description: Gestion des objets par les utilisateurs
     taches:
       - Afficher la liste de mes objets
-      - Ajouter un objet (nom, description, prix estime, categorie)
-      - Ajouter une ou plusieurs photos a un objet
-      - Modifier un objet (seulement le proprietaire)
-      - Supprimer un objet (seulement le proprietaire)
+      - Ajouter un objet
+      - Modifier un objet
+      - Supprimer un objet
+      - Associer un objet a une categorie
+      - Gerer les photos des objets
+      - Verifier les droits du proprietaire
+    livrables:
+      - ObjetController.php
+      - vues_objets
 
-  - etape: 4
-    titre: Consultation des objets
-    description: >
-      Permettre aux utilisateurs de consulter les objets des autres utilisateurs.
+  - responsable: Consultation_et_recherche
+    description: Consultation publique des objets
     taches:
-      - Afficher la liste des objets disponibles
-      - Exclure mes propres objets de la liste publique
-      - Afficher la fiche detaillee d un objet
-      - Afficher les photos de l objet
+      - Afficher les objets disponibles
+      - Exclure les objets de l utilisateur connecte
+      - Afficher le detail d un objet
+      - Afficher les photos
       - Afficher le proprietaire actuel
-      - Afficher l historique des proprietaires de l objet
+      - Afficher l historique des proprietaires
+      - Recherche par mot cle
+      - Filtre par categorie
+    livrables:
+      - vues_public
+      - methodes_recherche
 
-  - etape: 5
-    titre: Recherche et filtrage
-    description: >
-      Offrir un systeme de recherche simple pour les objets.
+  - responsable: Echanges
+    description: Gestion des propositions d echange
     taches:
-      - Recherche par mot cle (nom ou description)
-      - Filtrer les objets par categorie
-      - Combiner recherche et filtre par categorie
-
-  - etape: 6
-    titre: Propositions d echange
-    description: >
-      Permettre aux utilisateurs de proposer des echanges entre objets.
-    taches:
-      - Ajouter un bouton proposer un echange
-      - Choisir un de mes objets a proposer
+      - Ajouter le bouton proposer un echange
+      - Choisir un objet a proposer
       - Selectionner l objet demande
-      - Enregistrer une proposition d echange
-      - Afficher la liste de mes echanges envoyes
-      - Afficher la liste des echanges recus
-      - Accepter une proposition d echange
-      - Refuser une proposition d echange
+      - Creer une proposition d echange
+      - Afficher les echanges envoyes
+      - Afficher les echanges recus
+      - Accepter un echange
+      - Refuser un echange
+    livrables:
+      - EchangeController.php
+      - vues_echanges
 
-  - etape: 7
-    titre: Logique metier de l echange
-    description: >
-      Gerer correctement les consequences d un echange accepte.
+  - responsable: Logique_metier
+    description: Regles critiques des echanges
     taches:
-      - Changer le proprietaire des deux objets
+      - Changer les proprietaires lors d un echange accepte
       - Mettre a jour le statut de l echange
-      - Enregistrer le changement dans l historique des objets
-      - Verifier la coherence des donnees apres echange
+      - Enregistrer l historique des objets
+      - Verifier la coherence des donnees
+      - Bloquer les echanges invalides
+    livrables:
+      - fonctions_metier
+      - tests_logique
 
-  - etape: 8
-    titre: Back-office administrateur
-    description: >
-      Permettre a l administrateur de gerer les categories et consulter les statistiques.
+  - responsable: Administration
+    description: Gestion du back office
     taches:
-      - Creer la page de connexion administrateur
-      - Pre-remplir les identifiants admin dans le formulaire
-      - Restreindre l acces aux pages admin
-      - Gerer les categories (ajout, modification, suppression)
-      - Afficher les statistiques globales
-      - Compter le nombre d utilisateurs
-      - Compter le nombre d echanges acceptes
+      - Creer la page connexion admin
+      - Pre remplir les identifiants admin
+      - Restreindre l acces admin
+      - Gerer les categories
+      - Afficher les statistiques
+      - Compter les utilisateurs
+      - Compter les echanges acceptes
+    livrables:
+      - AdminController.php
+      - vues_admin
 
-  - etape: 9
-    titre: Interface utilisateur et presentation
-    description: >
-      Rendre l application utilisable et presentable.
+  - responsable: Interface_et_finition
+    description: Presentation et experience utilisateur
     taches:
-      - Ajouter un menu de navigation clair
+      - Creer le menu de navigation
       - Afficher les messages d erreur et de succes
-      - Appliquer un design simple (Bootstrap ou CSS)
-      - Ajouter un footer obligatoire
-      - Afficher les noms des membres du groupe
+      - Appliquer un design simple
+      - Ajouter le footer obligatoire
+      - Afficher les noms des membres
       - Afficher les numeros ETU
+    livrables:
+      - layout
+      - footer
 
-  - etape: 10
-    titre: Tests et verification finale
-    description: >
-      S assurer que toutes les fonctionnalites fonctionnent correctement.
+  - responsable: Tests_et_validation
+    description: Verification finale du projet
     taches:
-      - Tester l inscription et la connexion
+      - Tester l authentification
       - Tester la gestion des objets
-      - Tester la recherche et le filtrage
+      - Tester la recherche
       - Tester les echanges complets
-      - Tester le back-office administrateur
+      - Tester le back office
       - Verifier l historique public
-      - Verifier qu aucune erreur critique n est presente
+      - Verifier l absence d erreurs critiques
+    livrables:
+      - rapport_tests
